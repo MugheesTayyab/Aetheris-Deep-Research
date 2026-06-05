@@ -81,27 +81,25 @@ The web interface is styled using a custom earthy and modern parchment design sy
 ```filepath
 Mughees-Aetheris-deep.research/
 │
-├── research_assistant_code/
-│   └── research_assistant/
-│       ├── agents/
-│       │   ├── __init__.py
-│       │   ├── clarity_agent.py      # Evaluates query specificity
-│       │   ├── research_agent.py     # Parallel search & confidence scoring
-│       │   ├── validator_agent.py    # Audits findings against query
-│       │   └── synthesis_agent.py    # Drafts final structured report
-│       │
-│       ├── app.py                    # Polished Streamlit web application
-│       ├── graph.py                  # LangGraph compiler & conditional routing
-│       ├── state.py                  # TypedDict definition of Graph State
-│       ├── test.py                   # E2E multi-turn CLI demonstration
-│       └── requirements.txt          # Python dependencies
+├── agents/
+│   ├── __init__.py
+│   ├── clarity_agent.py      # Evaluates query specificity
+│   ├── research_agent.py     # Parallel search & confidence scoring
+│   ├── validator_agent.py    # Audits findings against query
+│   └── synthesis_agent.py    # Drafts final structured report
 │
-├── extra.content/                    # Supplemental files
+├── extra.content/            # Supplemental files
 │   ├── Aetheris_Deep_Research.pdf    # Sample output report PDF
 │   └── Aetheris_Engineering_Epistemic_Rigor.mp4  # Interface demonstration video
 │
-├── .gitignore                        # Standard ignore file (ignores secrets)
-└── README.md                         # Project documentation
+├── .gitignore                # Standard ignore file (ignores secrets)
+├── README.md                 # Project documentation
+├── aetheris_logo.png         # Custom minimalist brand logo
+├── app.py                    # Polished Streamlit web application
+├── graph.py                  # LangGraph compiler & conditional routing
+├── state.py                  # TypedDict definition of Graph State
+├── test.py                   # E2E multi-turn CLI demonstration
+└── requirements.txt          # Python dependencies
 ```
 
 ---
@@ -111,11 +109,11 @@ Mughees-Aetheris-deep.research/
 ### 1. Clone & Navigate
 ```bash
 git clone <your-repo-url>
-cd Mughees-Aetheris-deep.research/research_assistant_code/research_assistant
+cd Mughees-Aetheris-deep.research
 ```
 
 ### 2. Configure Environment Variables
-Create a `.env` file inside the `research_assistant` root folder or the `agents` folder:
+Create a `.env` file inside the root folder:
 ```env
 GOOGLE_API_KEY=your_gemini_api_key_here
 TAVILY_API_KEY=your_tavily_api_key_here
