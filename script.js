@@ -1,4 +1,10 @@
 // ═══════════════════════════════════════════════════════════════
+// BACKEND URL — set window.__BACKEND_URL__ to your Render URL
+// e.g. https://aetheris-backend.onrender.com
+// ═══════════════════════════════════════════════════════════════
+const API_BASE = window.__BACKEND_URL__ || "http://localhost:8000";
+
+// ═══════════════════════════════════════════════════════════════
 // STATE MANAGEMENT & CONFIGURATION
 // ═══════════════════════════════════════════════════════════════
 const STATE = {
@@ -135,7 +141,7 @@ async function handleSubmit() {
       payload.clarification_answer = query;
     }
 
-    const response = await fetch("/api/chat", {
+    const response = await fetch(`${API_BASE}/api/chat`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -144,7 +150,8 @@ async function handleSubmit() {
     });
 
     if (!response.ok) {
-      throw new Error(`Server error: ${response.statusText}`);
+      const errBody = await response.text().catch(() => response.statusText);
+      throw new Error(`Server error: ${errBody}`);
     }
 
     const data = await response.json();
