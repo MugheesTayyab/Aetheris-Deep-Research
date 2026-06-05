@@ -1,0 +1,13 @@
+# Core LangChain and LangGraph for agent orchestration
+langgraph
+langchain-google-genai
+langchain-community
+
+# Search capabilities
+tavily-python
+
+# Web framework for the user interface
+streamlit
+
+# Environment variable management
+python-dotenv
