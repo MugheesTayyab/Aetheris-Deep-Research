@@ -1,10 +1,20 @@
 import os
 import uuid
 import html as html_lib
+import base64
 import streamlit as st
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Load logo for sidebar
+logo_base64 = ""
+try:
+    logo_path = os.path.join(os.path.dirname(__file__), "aetheris_logo.png")
+    with open(logo_path, "rb") as f:
+        logo_base64 = base64.b64encode(f.read()).decode()
+except Exception:
+    pass
 
 from langchain_core.messages import HumanMessage
 from langgraph.types import Command
@@ -15,7 +25,7 @@ from graph import app as research_graph
 # ─────────────────────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Aetheris · Deep Research",
-    page_icon="🔬",
+    page_icon=os.path.join(os.path.dirname(__file__), "aetheris_logo.png"),
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -863,9 +873,10 @@ _NAV_ICONS = {
 # SIDEBAR
 # ─────────────────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("""
+    logo_html = f'<img class="sb-av" src="data:image/png;base64,{logo_base64}" style="object-fit: cover; padding: 0;" />' if logo_base64 else '<div class="sb-av">A</div>'
+    st.markdown(f"""
 <div class="sb-logo">
-  <div class="sb-av">A</div>
+  {logo_html}
   <div>
     <div class="sb-name">Aetheris</div>
     <div class="sb-sub">Deep Research</div>
