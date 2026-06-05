@@ -6,8 +6,13 @@ langchain-community
 # Search capabilities
 tavily-python
 
-# Web framework for the user interface
+# Web framework for local Streamlit UI
 streamlit
+
+# Backend API server for Vercel deployment
+fastapi
+uvicorn
+pydantic
 
 # Environment variable management
 python-dotenv

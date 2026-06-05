@@ -1,0 +1,149 @@
+import os
+import sys
+import uuid
+from typing import Optional, List, Dict, Any
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+# Add parent directory to sys.path so we can import state, graph, and agents
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from dotenv import load_dotenv
+load_dotenv()
+
+from langchain_core.messages import HumanMessage
+from langgraph.types import Command
+from graph import app as research_graph
+
+app = FastAPI(title="Aetheris API", docs_url="/api/docs", openapi_url="/api/openapi.json")
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+class ChatRequest(BaseModel):
+    query: str
+    thread_id: Optional[str] = None
+    clarification_answer: Optional[str] = None
+
+class AgentStatus(BaseModel):
+    name: str
+    icon: str
+    sub: str
+    status: str
+
+class ChatResponse(BaseModel):
+    thread_id: str
+    is_clarifying: bool
+    clarification_question: str
+    final_response: str
+    confidence_score: int
+    validation_result: str
+    attempts: int
+    completion: int
+    agents: List[AgentStatus]
+
+def _completion_percentage(vals: dict) -> int:
+    pts = 0
+    if vals.get("clarity_status"):       pts += 20
+    if vals.get("confidence_score", 0):  pts += 30
+    if vals.get("validation_result"):    pts += 20
+    if vals.get("final_response"):       pts += 30
+    return min(pts, 100)
+
+def _get_agent_list(vals: dict) -> list:
+    clarity = vals.get("clarity_status", "")
+    conf    = vals.get("confidence_score", 0)
+    vr      = vals.get("validation_result", "")
+    fr      = vals.get("final_response", "")
+    return [
+        {
+            "icon": "Q", "name": "Query Analyzer",
+            "sub":  "Clear" if clarity == "clear" else ("Needs clarification" if clarity else "Awaiting query"),
+            "status": "complete" if clarity else "idle",
+        },
+        {
+            "icon": "L", "name": "Literature Scraper",
+            "sub":  f"Confidence {conf}/10" if conf else "Awaiting query",
+            "status": "complete" if conf else "idle",
+        },
+        {
+            "icon": "F", "name": "Fact-Check Validator",
+            "sub":  vr.title() if vr else "Awaiting data",
+            "status": "complete" if vr else "idle",
+        },
+        {
+            "icon": "D", "name": "Drafting Engine",
+            "sub":  "Report ready" if fr else "Idle · Awaiting data",
+            "status": "complete" if fr else "idle",
+        },
+    ]
+
+@app.get("/api/health")
+def health_check():
+    return {"status": "healthy", "service": "Aetheris Deep Research Backend"}
+
+@app.post("/api/chat", response_model=ChatResponse)
+async def chat_endpoint(request: ChatRequest):
+    thread_id = request.thread_id or str(uuid.uuid4())
+    config = {"configurable": {"thread_id": thread_id}}
+
+    try:
+        # Check current snapshot of the graph
+        snapshot = research_graph.get_state(config)
+        is_currently_clarifying = snapshot.next and "human_feedback" in snapshot.next
+
+        # Decide whether we are resuming or running a fresh/new query
+        if is_currently_clarifying and request.clarification_answer:
+            # Resume graph with user answer
+            research_graph.invoke(Command(resume=request.clarification_answer), config=config)
+        else:
+            # Start fresh query
+            initial_input = {
+                "query": request.query,
+                "messages": [HumanMessage(content=request.query)],
+                "attempts": 0,
+            }
+            research_graph.invoke(initial_input, config=config)
+
+        # Retrieve updated state
+        updated_snapshot = research_graph.get_state(config)
+        state_values = updated_snapshot.values or {}
+
+        # Check if graph paused for clarification
+        is_clarifying = updated_snapshot.next and "human_feedback" in updated_snapshot.next
+        clarification_question = ""
+        if is_clarifying:
+            if updated_snapshot.tasks and updated_snapshot.tasks[0].interrupts:
+                clarification_question = str(updated_snapshot.tasks[0].interrupts[0].value)
+            else:
+                clarification_question = state_values.get("clarification_question", "Please clarify your request:")
+
+        final_response = state_values.get("final_response", "")
+        confidence_score = state_values.get("confidence_score", 0)
+        validation_result = state_values.get("validation_result", "")
+        attempts = state_values.get("attempts", 0)
+        completion = _completion_percentage(state_values)
+        agents = _get_agent_list(state_values)
+
+        return ChatResponse(
+            thread_id=thread_id,
+            is_clarifying=is_clarifying,
+            clarification_question=clarification_question,
+            final_response=final_response,
+            confidence_score=confidence_score,
+            validation_result=validation_result,
+            attempts=attempts,
+            completion=completion,
+            agents=agents
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Pipeline error: {str(e)}")

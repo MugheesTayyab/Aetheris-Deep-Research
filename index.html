@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aetheris · Deep Research AI Assistant</title>
+  <!-- Google Fonts: Inter (Body) & Playfair Display / Outfit (Headings) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="aetheris_logo.png">
+</head>
+<body>
+  <div class="app-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <img class="sidebar-logo" src="aetheris_logo.png" alt="Aetheris Logo">
+        <div>
+          <h1 class="sidebar-title">Aetheris</h1>
+          <span class="sidebar-subtitle">Deep Research</span>
+        </div>
+      </div>
+
+      <button id="new-synthesis-btn" class="btn btn-primary">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        New Synthesis
+      </button>
+
+      <div class="sidebar-divider"></div>
+
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active">
+          <svg class="icon nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          Research Hub
+        </a>
+        <a href="#" class="nav-item">
+          <svg class="icon nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          Data Synthesis
+        </a>
+        <a href="#" class="nav-item">
+          <svg class="icon nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"></circle><circle cx="5" cy="19" r="2"></circle><circle cx="19" cy="19" r="2"></circle><line x1="12" y1="7" x2="5.5" y2="17"></line><line x1="12" y1="7" x2="18.5" y2="17"></line></svg>
+          Agent Pipeline
+        </a>
+        <a href="#" class="nav-item">
+          <svg class="icon nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          Knowledge Base
+        </a>
+        <a href="#" class="nav-item">
+          <svg class="icon nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+          Archive
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="#" class="nav-item">
+          <svg class="icon nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          Settings
+        </a>
+      </div>
+    </aside>
+
+    <!-- MAIN CHAT WORKSPACE -->
+    <main class="main-content">
+      <!-- HEADER -->
+      <header class="main-header">
+        <div class="header-info">
+          <span class="session-label">Active Session</span>
+          <h2 id="session-title" class="session-title">Synthesis Workspace</h2>
+        </div>
+        <div id="active-agents-badge" class="badge-container">
+          <!-- Active status badge dynamic -->
+        </div>
+      </header>
+
+      <!-- FEED CONTAINER -->
+      <div id="chat-feed" class="chat-feed">
+        <!-- EMPTY STATE -->
+        <div id="empty-state" class="empty-state">
+          <div class="empty-state-icon">🔬</div>
+          <h3 class="empty-state-title">Aetheris Deep Research Engine</h3>
+          <p class="empty-state-subtitle">
+            Initialize an advanced synthesis cycle. The multi-agent pipeline orchestrates autonomous models to cross-examine literature streams, audit claim validity, and generate structured insights.
+          </p>
+          <div class="feature-grid">
+            <div class="feature-card">
+              <div class="feature-title">📖 Literature Extraction</div>
+              <div class="feature-desc">Map historical frameworks, contextual vectors, and divergent academic standpoints on any inquiry.</div>
+            </div>
+            <div class="feature-card">
+              <div class="feature-title">🛡️ Fact-Check Validation</div>
+              <div class="feature-desc">Cross-examine operational assertions against empirical datasets, isolating conflicting points.</div>
+            </div>
+            <div class="feature-card">
+              <div class="feature-title">📊 Auto-Drafting Engine</div>
+              <div class="feature-desc">Synthesize core trends into publication-ready briefings decorated with categorical tags.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INPUT FORM -->
+      <div class="input-area">
+        <form id="chat-form" class="chat-form">
+          <textarea id="chat-input" placeholder="Instruct agents to pivot research focus or synthesize specific findings..." rows="1" required></textarea>
+          <button type="submit" id="submit-btn" class="send-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          </button>
+        </form>
+        <div class="input-hint">
+          <span>Engine status: Ready</span>
+          <span class="powered-by">Powered by Gemini & LangGraph</span>
+        </div>
+      </div>
+    </main>
+
+    <!-- RIGHT PANEL - METRICS -->
+    <section class="metrics-panel">
+      <div class="metrics-card">
+        <h3 class="metrics-title">Synthesis Metrics</h3>
+        
+        <div class="metric-section">
+          <div class="metric-header">
+            <span>Overall Completion</span>
+            <span id="completion-text" class="metric-value">0%</span>
+          </div>
+          <div class="progress-bar">
+            <div id="completion-bar" class="progress-bar-fill" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <div id="confidence-section" class="metric-section hidden">
+          <div class="metric-header">
+            <span>Confidence Score</span>
+            <span id="confidence-text" class="metric-value">0/10</span>
+          </div>
+          <div class="progress-bar">
+            <div id="confidence-bar" class="progress-bar-fill" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <div class="metrics-divider"></div>
+
+        <div class="agents-section">
+          <h4 class="agents-title">Deployed Agents</h4>
+          <div id="agents-list" class="agents-list">
+            <!-- Dynamic Agents List -->
+            <div class="agent-item">
+              <div class="agent-avatar status-idle">Q</div>
+              <div>
+                <div class="agent-name">Query Analyzer</div>
+                <div class="agent-status">Awaiting query</div>
+              </div>
+            </div>
+            <div class="agent-item">
+              <div class="agent-avatar status-idle">L</div>
+              <div>
+                <div class="agent-name">Literature Scraper</div>
+                <div class="agent-status">Awaiting query</div>
+              </div>
+            </div>
+            <div class="agent-item">
+              <div class="agent-avatar status-idle">F</div>
+              <div>
+                <div class="agent-name">Fact-Check Validator</div>
+                <div class="agent-status">Awaiting data</div>
+              </div>
+            </div>
+            <div class="agent-item">
+              <div class="agent-avatar status-idle">D</div>
+              <div>
+                <div class="agent-name">Drafting Engine</div>
+                <div class="agent-status">Idle · Awaiting data</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="validation-pill" class="validation-banner hidden">
+          <!-- Dynamic validation status -->
+        </div>
+      </div>
+
+      <button id="halt-synthesis-btn" class="btn btn-secondary btn-full">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect></svg>
+        Halt Synthesis
+      </button>
+    </section>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="loading-overlay hidden">
+    <div class="spinner-container">
+      <div class="spinner"></div>
+      <p class="loading-text">Orchestrating agent workflows...</p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
