@@ -14,7 +14,7 @@ load_dotenv(override=True)
 api_key = os.getenv("GOOGLE_API_KEY")
 
 # Gemini 3.5 Flash balances speed and quality for multi-step research tasks
-model_name = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
+model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
 llm = ChatGoogleGenerativeAI(
     model=model_name,
     google_api_key=api_key,

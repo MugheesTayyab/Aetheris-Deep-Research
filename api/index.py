@@ -3,19 +3,45 @@ import sys
 import uuid
 from typing import Optional, List, Dict, Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 # Add parent directory to sys.path so we can import state, graph, and agents
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(override=True)
 
-from langchain_core.messages import HumanMessage
-from langgraph.types import Command
-from graph import app as research_graph
+# ── Startup validation ────────────────────────────────────────────────────────
+# Fail with a clear message if the required secrets are not in the environment.
+# On Vercel these MUST be set in Project Settings → Environment Variables.
+_STARTUP_ERROR: Optional[str] = None
+
+_required = {
+    "GOOGLE_API_KEY": os.getenv("GOOGLE_API_KEY"),
+    "TAVILY_API_KEY": os.getenv("TAVILY_API_KEY"),
+}
+_missing = [k for k, v in _required.items() if not v]
+if _missing:
+    _STARTUP_ERROR = (
+        f"Missing required environment variables: {', '.join(_missing)}. "
+        "Set them in your Vercel Project Settings → Environment Variables."
+    )
+
+# ── Import the research graph ─────────────────────────────────────────────────
+if not _STARTUP_ERROR:
+    try:
+        from langchain_core.messages import HumanMessage
+        from langgraph.types import Command
+        from graph import app as research_graph
+    except Exception as _import_err:
+        _STARTUP_ERROR = f"Failed to load research graph: {_import_err}"
+else:
+    research_graph = None  # type: ignore
+    HumanMessage = None    # type: ignore
+    Command = None         # type: ignore
 
 app = FastAPI(title="Aetheris API", docs_url="/api/docs", openapi_url="/api/openapi.json")
 
@@ -27,6 +53,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# ── Global error handler — always returns JSON, never a plain-text 500 ────────
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"Internal server error: {type(exc).__name__}: {exc}"},
+    )
+
 
 class ChatRequest(BaseModel):
     query: str
@@ -88,10 +124,16 @@ def _get_agent_list(vals: dict) -> list:
 
 @app.get("/api/health")
 def health_check():
+    if _STARTUP_ERROR:
+        return JSONResponse(status_code=503, content={"status": "unhealthy", "error": _STARTUP_ERROR})
     return {"status": "healthy", "service": "Aetheris Deep Research Backend"}
 
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
+    # Surface startup errors immediately with a clear message
+    if _STARTUP_ERROR:
+        raise HTTPException(status_code=503, detail=_STARTUP_ERROR)
+
     thread_id = request.thread_id or str(uuid.uuid4())
     config = {"configurable": {"thread_id": thread_id}}
 
@@ -118,7 +160,7 @@ async def chat_endpoint(request: ChatRequest):
         state_values = updated_snapshot.values or {}
 
         # Check if graph paused for clarification
-        is_clarifying = updated_snapshot.next and "human_feedback" in updated_snapshot.next
+        is_clarifying = bool(updated_snapshot.next and "human_feedback" in updated_snapshot.next)
         clarification_question = ""
         if is_clarifying:
             if updated_snapshot.tasks and updated_snapshot.tasks[0].interrupts:
@@ -146,4 +188,4 @@ async def chat_endpoint(request: ChatRequest):
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Pipeline error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Pipeline error: {type(e).__name__}: {e}")

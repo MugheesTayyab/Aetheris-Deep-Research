@@ -144,7 +144,16 @@ async function handleSubmit() {
     });
 
     if (!response.ok) {
-      throw new Error(`Server error: ${response.statusText}`);
+      // Try to extract the detailed error message from the JSON body first.
+      // Vercel/FastAPI always sends {"detail": "..."} on errors.
+      let errorMsg = `HTTP ${response.status}`;
+      try {
+        const errBody = await response.json();
+        errorMsg = errBody.detail || errBody.error || errBody.message || errorMsg;
+      } catch (_) {
+        errorMsg = response.statusText || errorMsg;
+      }
+      throw new Error(errorMsg);
     }
 
     const data = await response.json();

@@ -14,7 +14,7 @@ api_key = os.getenv("GOOGLE_API_KEY")
 
 # Gemini 3.5 Flash: fast enough for a lightweight classification task.
 # temperature=0.7 keeps responses varied but not erratic.
-model_name = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
+model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
 llm = ChatGoogleGenerativeAI(
     model=model_name,
     google_api_key=api_key,
