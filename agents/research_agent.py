@@ -8,14 +8,15 @@ from langchain_community.tools import TavilySearchResults
 from langchain_core.messages import HumanMessage, AIMessage
 
 # Load environment variables from the project-root .env file
-load_dotenv()
+load_dotenv(override=True)
 
 # Pull the Google API key for Gemini authentication
 api_key = os.getenv("GOOGLE_API_KEY")
 
-# Gemini 2.5 Flash balances speed and quality for multi-step research tasks
+# Gemini 3.5 Flash balances speed and quality for multi-step research tasks
+model_name = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
 llm = ChatGoogleGenerativeAI(
-    model="gemini-2.0-flash",
+    model=model_name,
     google_api_key=api_key,
     max_retries=2,       # Built-in LangChain retry for transient failures
     temperature=0.7,
@@ -29,11 +30,29 @@ search_tool = TavilySearchResults(
 )
 
 
+def _extract_text(content) -> str:
+    if isinstance(content, str):
+        return content
+    elif isinstance(content, list):
+        text_parts = []
+        for part in content:
+            if isinstance(part, str):
+                text_parts.append(part)
+            elif isinstance(part, dict) and "text" in part:
+                text_parts.append(part["text"])
+            elif hasattr(part, "text"):
+                text_parts.append(part.text)
+            elif hasattr(part, "get") and part.get("text"):
+                text_parts.append(part.get("text"))
+        return "".join(text_parts)
+    return str(content)
+
+
 def _run_search(query: str) -> str:
     """
     Execute one Tavily search and return the results as a numbered string.
 
-    Each result is formatted as "[n] <url>\\n<content>" so downstream prompts
+    Each result is formatted as "[n] <url>\n<content>" so downstream prompts
     can reference sources by their index number.
 
     Args:
@@ -127,11 +146,13 @@ def research_agent(state: dict) -> dict:
         for attempt in range(5):     # Retry up to 5 times on rate-limit errors
             try:
                 conf_response = llm.invoke([HumanMessage(content=confidence_prompt)])
-                raw_conf = conf_response.content.strip()
+                raw_conf = _extract_text(conf_response.content).strip()
                 break                # Success — exit retry loop
             except Exception as inner_e:
                 if "429" in str(inner_e) and attempt < 4:
-                    time.sleep(25)   # Wait for Gemini free-tier window to reset
+                    # Exponential backoff capped at 8 s (stays within Vercel's 10 s limit)
+                    wait = min(2 ** (attempt + 1), 8)
+                    time.sleep(wait)
                 else:
                     raise inner_e
     except Exception as e:

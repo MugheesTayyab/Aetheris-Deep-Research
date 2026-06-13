@@ -6,18 +6,37 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage, AIMessage
 
 # Load environment variables from the project-root .env file
-load_dotenv()
+load_dotenv(override=True)
 
 # Pull the Google API key for Gemini authentication
 api_key = os.getenv("GOOGLE_API_KEY")
 
-# Gemini 2.5 Flash handles long-form report generation well within context limits
+# Gemini 3.5 Flash handles long-form report generation well within context limits
+model_name = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
 llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
+    model=model_name,
     google_api_key=api_key,
     max_retries=2,
     temperature=0.7,
 )
+
+
+def _extract_text(content) -> str:
+    if isinstance(content, str):
+        return content
+    elif isinstance(content, list):
+        text_parts = []
+        for part in content:
+            if isinstance(part, str):
+                text_parts.append(part)
+            elif isinstance(part, dict) and "text" in part:
+                text_parts.append(part["text"])
+            elif hasattr(part, "text"):
+                text_parts.append(part.text)
+            elif hasattr(part, "get") and part.get("text"):
+                text_parts.append(part.get("text"))
+        return "".join(text_parts)
+    return str(content)
 
 
 def synthesis_agent(state: dict) -> dict:
@@ -89,11 +108,13 @@ def synthesis_agent(state: dict) -> dict:
                 response = llm.invoke([
                     HumanMessage(content=f"{system_prompt}\n\n{synthesis_prompt}")
                 ])
-                final_response = response.content.strip()
+                final_response = _extract_text(response.content).strip()
                 break                 # Clean response — exit retry loop
             except Exception as inner_e:
                 if "429" in str(inner_e) and attempt < 4:
-                    time.sleep(25)    # Wait for the Gemini rate-limit window to reset
+                    # Exponential backoff capped at 8 s (stays within Vercel's 10 s limit)
+                    wait = min(2 ** (attempt + 1), 8)
+                    time.sleep(wait)
                 else:
                     raise inner_e
     except Exception as e:

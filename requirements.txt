@@ -1,5 +1,6 @@
 # Core LangChain and LangGraph for agent orchestration
 langgraph
+langgraph-checkpoint-sqlite
 langchain-google-genai
 langchain-community
 
