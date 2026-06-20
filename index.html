@@ -111,7 +111,7 @@
         </form>
         <div class="input-hint">
           <span>Engine status: Ready</span>
-          <span class="powered-by">Powered by Gemini & LangGraph</span>
+          <span class="powered-by">Powered by OpenRouter & LangGraph</span>
         </div>
       </div>
     </main>
@@ -194,10 +194,11 @@
   <div id="loading-overlay" class="loading-overlay hidden">
     <div class="spinner-container">
       <div class="spinner"></div>
-      <p class="loading-text">Orchestrating agent workflows...</p>
+      <p id="loading-text" class="loading-text">Orchestrating agent workflows...</p>
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

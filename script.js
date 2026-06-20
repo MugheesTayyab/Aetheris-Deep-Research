@@ -99,9 +99,86 @@ function setupEventListeners() {
   DOM.haltSynthesisBtn.addEventListener("click", clearSession);
 }
 
-// ═══════════════════════════════════════════════════════════════
-// ACTION HANDLERS
-// ═══════════════════════════════════════════════════════════════
+const AGENT_EXPLANATIONS = {
+  "clarity_agent": {
+    name: "Query Analyzer",
+    desc: "Evaluating company name and research goal..."
+  },
+  "research_agent": {
+    name: "Literature Scraper",
+    desc: "Executing parallel Tavily searches and gathering web documentation..."
+  },
+  "validator_agent": {
+    name: "Fact-Check Validator",
+    desc: "Auditing findings factuality and completeness against query..."
+  },
+  "synthesis_agent": {
+    name: "Drafting Engine",
+    desc: "Compiling final structured, publication-ready report..."
+  }
+};
+
+function updateLoadingStatus(node) {
+  const explanation = AGENT_EXPLANATIONS[node];
+  if (explanation) {
+    const loadingTextEl = document.getElementById("loading-text");
+    if (loadingTextEl) {
+      loadingTextEl.textContent = `[${explanation.name}] - ${explanation.desc}`;
+    }
+
+    const agentItems = DOM.agentsList.querySelectorAll(".agent-item");
+    agentItems.forEach(item => {
+      const nameEl = item.querySelector(".agent-name");
+      const statusEl = item.querySelector(".agent-status");
+      const avatarEl = item.querySelector(".agent-avatar");
+
+      if (nameEl && nameEl.textContent === explanation.name) {
+        avatarEl.className = "agent-avatar status-busy";
+        statusEl.textContent = explanation.desc;
+      } else {
+        if (avatarEl && avatarEl.classList.contains("status-busy")) {
+          avatarEl.className = "agent-avatar status-complete";
+          statusEl.textContent = "Complete";
+        }
+      }
+    });
+  }
+}
+
+function handleFinalData(data, originalQuery) {
+  STATE.isClarifying = data.is_clarifying;
+  STATE.clarificationQuestion = data.clarification_question;
+  sessionStorage.setItem("aetheris_is_clarifying", STATE.isClarifying);
+  sessionStorage.setItem("aetheris_clarification_question", STATE.clarificationQuestion);
+
+  if (STATE.isClarifying) {
+    STATE.displayHistory.push({
+      role: "clarification",
+      content: STATE.clarificationQuestion
+    });
+  } else if (data.final_response) {
+    const tags = extractTags(originalQuery);
+    STATE.displayHistory.push({
+      role: "assistant",
+      title: "Literature Review Summary",
+      content: data.final_response,
+      confidence: data.confidence_score,
+      tags: tags
+    });
+  } else {
+    STATE.displayHistory.push({
+      role: "assistant",
+      title: "System Notice",
+      content: "Research complete, but no final response was drafted. Please refine your query."
+    });
+  }
+
+  renderFeed();
+  updateMetricsUI(data);
+  saveSessionState();
+  sessionStorage.setItem("aetheris_metrics", JSON.stringify(data));
+}
+
 async function handleSubmit() {
   const query = DOM.chatInput.value.trim();
   if (!query) return;
@@ -121,6 +198,12 @@ async function handleSubmit() {
   STATE.displayHistory.push({ role: "user", content: query });
   renderFeed();
   saveSessionState();
+
+  // Reset loading text
+  const loadingTextEl = document.getElementById("loading-text");
+  if (loadingTextEl) {
+    loadingTextEl.textContent = "Orchestrating agent workflows...";
+  }
 
   // Show loading
   DOM.loadingOverlay.classList.remove("hidden");
@@ -144,8 +227,6 @@ async function handleSubmit() {
     });
 
     if (!response.ok) {
-      // Try to extract the detailed error message from the JSON body first.
-      // Vercel/FastAPI always sends {"detail": "..."} on errors.
       let errorMsg = `HTTP ${response.status}`;
       try {
         const errBody = await response.json();
@@ -156,42 +237,34 @@ async function handleSubmit() {
       throw new Error(errorMsg);
     }
 
-    const data = await response.json();
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
 
-    // Update state from API response
-    STATE.isClarifying = data.is_clarifying;
-    STATE.clarificationQuestion = data.clarification_question;
-    sessionStorage.setItem("aetheris_is_clarifying", STATE.isClarifying);
-    sessionStorage.setItem("aetheris_clarification_question", STATE.clarificationQuestion);
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
 
-    if (STATE.isClarifying) {
-      STATE.displayHistory.push({
-        role: "clarification",
-        content: STATE.clarificationQuestion
-      });
-    } else if (data.final_response) {
-      // Extract pseudo-tags from query
-      const tags = extractTags(payload.query);
-      STATE.displayHistory.push({
-        role: "assistant",
-        title: "Literature Review Summary",
-        content: data.final_response,
-        confidence: data.confidence_score,
-        tags: tags
-      });
-    } else {
-      STATE.displayHistory.push({
-        role: "assistant",
-        title: "System Notice",
-        content: "Research complete, but no final response was drafted. Please refine your query."
-      });
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n\n");
+      buffer = lines.pop(); // keep last incomplete line in buffer
+
+      for (const line of lines) {
+        const cleaned = line.trim();
+        if (cleaned.startsWith("data: ")) {
+          const rawData = cleaned.substring(6);
+          const data = JSON.parse(rawData);
+
+          if (data.event === "update") {
+            updateLoadingStatus(data.node);
+          } else if (data.event === "final") {
+            handleFinalData(data, payload.query);
+          } else if (data.event === "error") {
+            throw new Error(data.detail);
+          }
+        }
+      }
     }
-
-    // Update UI elements
-    renderFeed();
-    updateMetricsUI(data);
-    saveSessionState();
-    sessionStorage.setItem("aetheris_metrics", JSON.stringify(data));
 
   } catch (err) {
     console.error(err);
@@ -432,17 +505,13 @@ function extractTags(query) {
 }
 
 function formatReportMarkdown(text) {
+  if (typeof marked !== 'undefined') {
+    return marked.parse(text);
+  }
   let html = escapeHtml(text);
-  
-  // Headers (## Title)
   html = html.replace(/^##\s+(.+)$/gm, '<h2>$1</h2>');
-  
-  // Unordered list items (- Item)
   html = html.replace(/^\s*-\s+(.+)$/gm, '<li>$1</li>');
-  
-  // Wrap lists
   html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
-  
   return html;
 }
 
