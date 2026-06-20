@@ -128,7 +128,7 @@ def health_check():
         return JSONResponse(status_code=503, content={"status": "unhealthy", "error": _STARTUP_ERROR})
     return {"status": "healthy", "service": "Aetheris Deep Research Backend"}
 
-@app.post("/api/chat", response_model=ChatResponse)
+@app.post("/api/chat")
 async def chat_endpoint(request: ChatRequest):
     # Surface startup errors immediately with a clear message
     if _STARTUP_ERROR:
@@ -145,7 +145,7 @@ async def chat_endpoint(request: ChatRequest):
         # Decide whether we are resuming or running a fresh/new query
         if is_currently_clarifying and request.clarification_answer:
             # Resume graph with user answer
-            research_graph.invoke(Command(resume=request.clarification_answer), config=config)
+            event_stream = research_graph.stream(Command(resume=request.clarification_answer), config=config, stream_mode="updates")
         else:
             # Start fresh query
             initial_input = {
@@ -153,39 +153,59 @@ async def chat_endpoint(request: ChatRequest):
                 "messages": [HumanMessage(content=request.query)],
                 "attempts": 0,
             }
-            research_graph.invoke(initial_input, config=config)
+            event_stream = research_graph.stream(initial_input, config=config, stream_mode="updates")
 
-        # Retrieve updated state
-        updated_snapshot = research_graph.get_state(config)
-        state_values = updated_snapshot.values or {}
+        import asyncio
+        import json
+        from fastapi.responses import StreamingResponse
 
-        # Check if graph paused for clarification
-        is_clarifying = bool(updated_snapshot.next and "human_feedback" in updated_snapshot.next)
-        clarification_question = ""
-        if is_clarifying:
-            if updated_snapshot.tasks and updated_snapshot.tasks[0].interrupts:
-                clarification_question = str(updated_snapshot.tasks[0].interrupts[0].value)
-            else:
-                clarification_question = state_values.get("clarification_question", "Please clarify your request:")
+        async def event_generator():
+            try:
+                # Iterate through the stream from LangGraph
+                for update in event_stream:
+                    # Extract the node name
+                    node_name = list(update.keys())[0]
+                    # Yield an event telling the UI which node is running
+                    yield f"data: {json.dumps({'event': 'update', 'node': node_name})}\n\n"
+                    await asyncio.sleep(0.05)
 
-        final_response = state_values.get("final_response", "")
-        confidence_score = state_values.get("confidence_score", 0)
-        validation_result = state_values.get("validation_result", "")
-        attempts = state_values.get("attempts", 0)
-        completion = _completion_percentage(state_values)
-        agents = _get_agent_list(state_values)
+                # Retrieve updated state
+                updated_snapshot = research_graph.get_state(config)
+                state_values = updated_snapshot.values or {}
 
-        return ChatResponse(
-            thread_id=thread_id,
-            is_clarifying=is_clarifying,
-            clarification_question=clarification_question,
-            final_response=final_response,
-            confidence_score=confidence_score,
-            validation_result=validation_result,
-            attempts=attempts,
-            completion=completion,
-            agents=agents
-        )
+                # Check if graph paused for clarification
+                is_clarifying = bool(updated_snapshot.next and "human_feedback" in updated_snapshot.next)
+                clarification_question = ""
+                if is_clarifying:
+                    if updated_snapshot.tasks and updated_snapshot.tasks[0].interrupts:
+                        clarification_question = str(updated_snapshot.tasks[0].interrupts[0].value)
+                    else:
+                        clarification_question = state_values.get("clarification_question", "Please clarify your request:")
+
+                final_response = state_values.get("final_response", "")
+                confidence_score = state_values.get("confidence_score", 0)
+                validation_result = state_values.get("validation_result", "")
+                attempts = state_values.get("attempts", 0)
+                completion = _completion_percentage(state_values)
+                agents = _get_agent_list(state_values)
+
+                final_data = {
+                    "event": "final",
+                    "thread_id": thread_id,
+                    "is_clarifying": is_clarifying,
+                    "clarification_question": clarification_question,
+                    "final_response": final_response,
+                    "confidence_score": confidence_score,
+                    "validation_result": validation_result,
+                    "attempts": attempts,
+                    "completion": completion,
+                    "agents": agents
+                }
+                yield f"data: {json.dumps(final_data)}\n\n"
+            except Exception as inner_e:
+                yield f"data: {json.dumps({'event': 'error', 'detail': str(inner_e)})}\n\n"
+
+        return StreamingResponse(event_generator(), media_type="text/event-stream")
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Pipeline error: {type(e).__name__}: {e}")
