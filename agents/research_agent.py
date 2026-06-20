@@ -106,18 +106,57 @@ def research_agent(state: dict) -> dict:
                 query = content
                 break
 
-    # First 6 words act as a compact company/entity label for building
-    # focused search strings without repeating the full verbose query
-    company_snippet = " ".join(query.split()[:6])
+    attempts = state.get("attempts", 0)
+    search_queries = []
 
-    # ── 2. Run 3 targeted Tavily searches ───────────────────────────────────
-    # Three complementary angles — news, financials, general developments —
-    # maximise the chance of capturing all relevant facts in one pass
-    search_queries = [
-        f"{company_snippet} latest news",
-        f"{company_snippet} financials 2024",
-        f"{company_snippet} recent developments",
-    ]
+    # Dynamic search query generation based on feedback if we are in a retry loop
+    if attempts > 0:
+        feedback = ""
+        for msg in reversed(state.get("messages", [])):
+            content = msg.content if hasattr(msg, "content") else msg.get("content", "")
+            if "Validation result:" in content:
+                feedback = content
+                break
+
+        if feedback:
+            feedback_prompt = (
+                "You are an expert search query generator. "
+                "The previous research findings were marked as insufficient. "
+                "Given the original user query and the validator feedback explaining what is missing, "
+                "generate exactly 3 highly specific search queries to find the missing details.\n"
+                "Respond ONLY with valid JSON — no markdown, no extra text — in this exact format:\n"
+                '{"queries": ["query 1", "query 2", "query 3"]}'
+            )
+            try:
+                for conf_attempt in range(3):
+                    try:
+                        res = llm.invoke([
+                            HumanMessage(content=f"{feedback_prompt}\n\nUser Query: {query}\nValidator Feedback: {feedback}")
+                        ])
+                        raw_res = _extract_text(res.content).strip()
+                        if raw_res.startswith("```"):
+                            raw_res = raw_res.split("```")[1]
+                            if raw_res.startswith("json"):
+                                raw_res = raw_res[4:]
+                        parsed_res = json.loads(raw_res)
+                        generated_queries = parsed_res.get("queries", [])
+                        if len(generated_queries) == 3:
+                            search_queries = generated_queries
+                            break
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+
+    if len(search_queries) != 3:
+        # First 6 words act as a compact company/entity label for building
+        # focused search strings without repeating the full verbose query
+        company_snippet = " ".join(query.split()[:6])
+        search_queries = [
+            f"{company_snippet} latest news",
+            f"{company_snippet} financials 2024",
+            f"{company_snippet} recent developments",
+        ]
 
     all_findings = []
     for sq in search_queries:
@@ -125,8 +164,14 @@ def research_agent(state: dict) -> dict:
         # Label each block so the LLM knows which query produced which results
         all_findings.append(f"=== Search: {sq} ===\n{result_text}")
 
-    # Merge into a single text block passed through the rest of the pipeline
-    research_findings = "\n\n".join(all_findings)
+    current_findings = "\n\n".join(all_findings)
+
+    # Accumulate findings across attempts so we don't lose previous search details
+    previous_findings = state.get("research_findings", "")
+    if previous_findings:
+        research_findings = previous_findings + f"\n\n=== Retry Pass {attempts + 1} ===\n\n" + current_findings
+    else:
+        research_findings = current_findings
 
     # ── 3. Ask the LLM to score confidence (0–10) ───────────────────────────
     # Truncate to 4 000 chars to stay comfortably within Gemini's context window
