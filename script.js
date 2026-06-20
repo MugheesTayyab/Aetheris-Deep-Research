@@ -247,21 +247,26 @@ async function handleSubmit() {
         buffer += decoder.decode(value, { stream: true });
       }
       
-      const lines = buffer.split(/\r?\n\r?\n/);
+      const lines = buffer.split(/\r?\n/);
       buffer = lines.pop(); // keep last incomplete line in buffer
 
       for (const line of lines) {
         const cleaned = line.trim();
+        if (!cleaned) continue;
+
         if (cleaned.startsWith("data: ")) {
           const rawData = cleaned.substring(6);
-          const data = JSON.parse(rawData);
-
-          if (data.event === "update") {
-            updateLoadingStatus(data.node);
-          } else if (data.event === "final") {
-            handleFinalData(data, payload.query);
-          } else if (data.event === "error") {
-            throw new Error(data.detail);
+          try {
+            const data = JSON.parse(rawData);
+            if (data.event === "update") {
+              updateLoadingStatus(data.node);
+            } else if (data.event === "final") {
+              handleFinalData(data, payload.query);
+            } else if (data.event === "error") {
+              throw new Error(data.detail);
+            }
+          } catch (e) {
+            console.error("Failed to parse JSON line:", cleaned, e);
           }
         }
       }
