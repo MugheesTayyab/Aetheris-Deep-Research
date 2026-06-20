@@ -243,10 +243,11 @@ async function handleSubmit() {
 
     while (true) {
       const { value, done } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n\n");
+      if (value) {
+        buffer += decoder.decode(value, { stream: true });
+      }
+      
+      const lines = buffer.split(/\r?\n\r?\n/);
       buffer = lines.pop(); // keep last incomplete line in buffer
 
       for (const line of lines) {
@@ -263,6 +264,27 @@ async function handleSubmit() {
             throw new Error(data.detail);
           }
         }
+      }
+
+      if (done) {
+        // Process any remaining text in buffer if present
+        if (buffer && buffer.trim().startsWith("data: ")) {
+          const cleaned = buffer.trim();
+          const rawData = cleaned.substring(6);
+          try {
+            const data = JSON.parse(rawData);
+            if (data.event === "update") {
+              updateLoadingStatus(data.node);
+            } else if (data.event === "final") {
+              handleFinalData(data, payload.query);
+            } else if (data.event === "error") {
+              throw new Error(data.detail);
+            }
+          } catch(e) {
+            console.error("Failed to parse remaining buffer:", e);
+          }
+        }
+        break;
       }
     }
 
