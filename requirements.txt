@@ -2,6 +2,7 @@
 langgraph
 langgraph-checkpoint-sqlite
 langchain-google-genai
+langchain-openai
 langchain-community
 
 # Search capabilities

@@ -20,7 +20,7 @@ load_dotenv(override=True)
 _STARTUP_ERROR: Optional[str] = None
 
 _required = {
-    "GOOGLE_API_KEY": os.getenv("GOOGLE_API_KEY"),
+    "OPENROUTER_API_KEY": os.getenv("OPENROUTER_API_KEY"),
     "TAVILY_API_KEY": os.getenv("TAVILY_API_KEY"),
 }
 _missing = [k for k, v in _required.items() if not v]
