@@ -95,10 +95,10 @@ def validator_agent(state: dict) -> dict:
         '"reason": "<brief explanation of your assessment>"}'
     )
 
-    # Truncate to 5 000 chars to stay within the model's practical context window
+    # Truncate to 25 000 chars to fit within context limits
     validation_prompt = (
         f"User query: {query}\n\n"
-        f"Research findings:\n{research_findings[:5000]}"
+        f"Research findings:\n{research_findings[:25000]}"
     )
 
     # ── 3. Call the LLM with retry on rate-limit errors ─────────────────────

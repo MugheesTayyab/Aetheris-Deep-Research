@@ -95,11 +95,11 @@ def synthesis_agent(state: dict) -> dict:
         "Be professional, factual, and concise. Do not fabricate information."
     )
 
-    # Truncate research_findings to 6 000 chars to stay within context limits
+    # Truncate research_findings to 25 000 chars to fit within context limits
     synthesis_prompt = (
         f"User query: {query}\n\n"
         f"Conversation history:\n{conversation_history}\n\n"
-        f"Research findings:\n{research_findings[:6000]}"
+        f"Research findings:\n{research_findings[:25000]}"
     )
 
     # ── 4. Call the LLM to generate the final report ─────────────────────────

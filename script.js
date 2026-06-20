@@ -6,7 +6,8 @@ const STATE = {
   isClarifying: false,
   clarificationQuestion: "",
   displayHistory: [],
-  sessionTitle: "Synthesis Workspace"
+  sessionTitle: "Synthesis Workspace",
+  activeNode: null // Tracks current active agent node
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -119,6 +120,9 @@ const AGENT_EXPLANATIONS = {
 };
 
 function updateLoadingStatus(node) {
+  STATE.activeNode = node;
+  renderFeed();
+
   const explanation = AGENT_EXPLANATIONS[node];
   if (explanation) {
     const loadingTextEl = document.getElementById("loading-text");
@@ -146,6 +150,7 @@ function updateLoadingStatus(node) {
 }
 
 function handleFinalData(data, originalQuery) {
+  STATE.activeNode = null;
   STATE.isClarifying = data.is_clarifying;
   STATE.clarificationQuestion = data.clarification_question;
   sessionStorage.setItem("aetheris_is_clarifying", STATE.isClarifying);
@@ -180,6 +185,8 @@ function handleFinalData(data, originalQuery) {
 }
 
 async function handleSubmit() {
+  if (STATE.activeNode) return; // Prevent duplicate submissions during active synthesis
+
   const query = DOM.chatInput.value.trim();
   if (!query) return;
 
@@ -196,6 +203,14 @@ async function handleSubmit() {
 
   // Add user bubble
   STATE.displayHistory.push({ role: "user", content: query });
+  
+  // Set active node to initialize real-time visual feedback
+  STATE.activeNode = "clarity_agent";
+  
+  // Disable user input to maintain pipeline integrity
+  DOM.chatInput.disabled = true;
+  DOM.submitBtn.disabled = true;
+
   renderFeed();
   saveSessionState();
 
@@ -205,8 +220,7 @@ async function handleSubmit() {
     loadingTextEl.textContent = "Orchestrating agent workflows...";
   }
 
-  // Show loading
-  DOM.loadingOverlay.classList.remove("hidden");
+  // Keep full-screen overlay hidden for a clean, non-blocking visual flow
 
   try {
     const payload = {
@@ -300,9 +314,11 @@ async function handleSubmit() {
       title: "System Error",
       content: `Failed to communicate with research graph: ${err.message}`
     });
-    renderFeed();
   } finally {
-    DOM.loadingOverlay.classList.add("hidden");
+    STATE.activeNode = null;
+    DOM.chatInput.disabled = false;
+    DOM.submitBtn.disabled = false;
+    renderFeed();
   }
 }
 
@@ -443,6 +459,26 @@ function renderFeed() {
 
     DOM.chatFeed.appendChild(el);
   });
+
+  // Inject a real-time agent status card at the bottom of the feed if an agent is currently active
+  if (STATE.activeNode) {
+    const explanation = AGENT_EXPLANATIONS[STATE.activeNode];
+    if (explanation) {
+      const statusEl = document.createElement("div");
+      statusEl.className = "agent-status-bubble";
+      statusEl.innerHTML = `
+        <div class="status-avatar status-busy-pulse">${escapeHtml(explanation.name.charAt(0))}</div>
+        <div class="status-details">
+          <div class="status-agent-name">${escapeHtml(explanation.name)} is active...</div>
+          <div class="status-desc">${escapeHtml(explanation.desc)}</div>
+        </div>
+        <div class="status-loading-dots">
+          <span></span><span></span><span></span>
+        </div>
+      `;
+      DOM.chatFeed.appendChild(statusEl);
+    }
+  }
 
   // Scroll to bottom
   DOM.chatFeed.scrollTop = DOM.chatFeed.scrollHeight;

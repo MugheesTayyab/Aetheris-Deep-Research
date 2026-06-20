@@ -77,13 +77,64 @@ def _run_search(query: str) -> str:
         return f"Search failed for '{query}': {e}"
 
 
+def _generate_queries(query: str, feedback: str = None) -> list[str]:
+    """
+    Generate exactly 3 highly relevant and specific search queries using the LLM.
+    Uses feedback if executing on a retry pass. Falls back to static queries on error.
+    """
+    if feedback:
+        prompt = (
+            "You are an expert search query generator.\n"
+            "The previous research findings were marked as insufficient.\n"
+            f"Original user query: {query}\n"
+            f"Validator feedback explaining what is missing: {feedback}\n\n"
+            "Generate exactly 3 highly specific search queries to retrieve the missing information.\n"
+            "Respond ONLY with valid JSON — no markdown, no extra text — in this exact format:\n"
+            '{"queries": ["query 1", "query 2", "query 3"]}'
+        )
+    else:
+        prompt = (
+            "You are an expert search query generator.\n"
+            f"User query: {query}\n\n"
+            "Generate exactly 3 highly relevant and specific search queries to retrieve information from the web that will help answer the user's query.\n"
+            "Respond ONLY with valid JSON — no markdown, no extra text — in this exact format:\n"
+            '{"queries": ["query 1", "query 2", "query 3"]}'
+        )
+
+    try:
+        for attempt in range(3):
+            try:
+                res = llm.invoke([HumanMessage(content=prompt)])
+                raw_res = _extract_text(res.content).strip()
+                if raw_res.startswith("```"):
+                    raw_res = raw_res.split("```")[1]
+                    if raw_res.startswith("json"):
+                        raw_res = raw_res[4:]
+                parsed_res = json.loads(raw_res)
+                generated_queries = parsed_res.get("queries", [])
+                if len(generated_queries) == 3:
+                    return generated_queries
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+    # Fallback to static queries
+    company_snippet = " ".join(query.split()[:6])
+    return [
+        f"{company_snippet} latest news",
+        f"{company_snippet} key details timeline",
+        f"{company_snippet} recent developments",
+    ]
+
+
 def research_agent(state: dict) -> dict:
     """
     Gather live web evidence for the user's query and score its completeness.
 
-    Runs three targeted Tavily searches (latest news, financials, recent
-    developments), concatenates all results, then asks the LLM to rate how
-    well those findings answer the original query on a 0–10 scale.
+    Runs three targeted Tavily searches (generated dynamically), concatenates all
+    results, then asks the LLM to rate how well those findings answer the original
+    query on a 0–10 scale.
 
     Args:
         state (dict): LangGraph state containing 'query', 'messages', and 'attempts'.
@@ -107,56 +158,17 @@ def research_agent(state: dict) -> dict:
                 break
 
     attempts = state.get("attempts", 0)
-    search_queries = []
 
     # Dynamic search query generation based on feedback if we are in a retry loop
+    feedback = ""
     if attempts > 0:
-        feedback = ""
         for msg in reversed(state.get("messages", [])):
             content = msg.content if hasattr(msg, "content") else msg.get("content", "")
             if "Validation result:" in content:
                 feedback = content
                 break
 
-        if feedback:
-            feedback_prompt = (
-                "You are an expert search query generator. "
-                "The previous research findings were marked as insufficient. "
-                "Given the original user query and the validator feedback explaining what is missing, "
-                "generate exactly 3 highly specific search queries to find the missing details.\n"
-                "Respond ONLY with valid JSON — no markdown, no extra text — in this exact format:\n"
-                '{"queries": ["query 1", "query 2", "query 3"]}'
-            )
-            try:
-                for conf_attempt in range(3):
-                    try:
-                        res = llm.invoke([
-                            HumanMessage(content=f"{feedback_prompt}\n\nUser Query: {query}\nValidator Feedback: {feedback}")
-                        ])
-                        raw_res = _extract_text(res.content).strip()
-                        if raw_res.startswith("```"):
-                            raw_res = raw_res.split("```")[1]
-                            if raw_res.startswith("json"):
-                                raw_res = raw_res[4:]
-                        parsed_res = json.loads(raw_res)
-                        generated_queries = parsed_res.get("queries", [])
-                        if len(generated_queries) == 3:
-                            search_queries = generated_queries
-                            break
-                    except Exception:
-                        pass
-            except Exception:
-                pass
-
-    if len(search_queries) != 3:
-        # First 6 words act as a compact company/entity label for building
-        # focused search strings without repeating the full verbose query
-        company_snippet = " ".join(query.split()[:6])
-        search_queries = [
-            f"{company_snippet} latest news",
-            f"{company_snippet} financials 2024",
-            f"{company_snippet} recent developments",
-        ]
+    search_queries = _generate_queries(query, feedback if attempts > 0 else None)
 
     all_findings = []
     for sq in search_queries:
@@ -174,7 +186,7 @@ def research_agent(state: dict) -> dict:
         research_findings = current_findings
 
     # ── 3. Ask the LLM to score confidence (0–10) ───────────────────────────
-    # Truncate to 4 000 chars to stay comfortably within Gemini's context window
+    # Truncate to 25 000 chars to fit within context limits
     confidence_prompt = (
         "You are a research quality assessor. "
         "Given the user's original query and the raw search findings below, "
@@ -183,7 +195,7 @@ def research_agent(state: dict) -> dict:
         "Respond ONLY with valid JSON — no markdown, no extra text:\n"
         '{"confidence_score": <integer 0-10>, "reasoning": "<brief explanation>"}\n\n'
         f"User query: {query}\n\n"
-        f"Research findings:\n{research_findings[:4000]}"
+        f"Research findings:\n{research_findings[:25000]}"
     )
 
     raw_conf = ""
