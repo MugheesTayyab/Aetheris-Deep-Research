@@ -189,3 +189,8 @@ async def chat_endpoint(request: ChatRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Pipeline error: {type(e).__name__}: {e}")
+
+# Serve static files from the project root directory for local execution
+from fastapi.staticfiles import StaticFiles
+root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+app.mount("/", StaticFiles(directory=root_dir, html=True), name="static")
