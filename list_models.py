@@ -1,11 +1,20 @@
 import os
+import requests
 from dotenv import load_dotenv
-import google.generativeai as genai
 
 load_dotenv()
-genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
+api_key = os.getenv("OPENROUTER_API_KEY")
 
-print("Supported models:")
-for model in genai.list_models():
-    if 'generateContent' in model.supported_generation_methods:
-        print(model.name)
+print("Fetching models from OpenRouter...")
+headers = {}
+if api_key:
+    headers["Authorization"] = f"Bearer {api_key}"
+response = requests.get("https://openrouter.ai/api/v1/models", headers=headers)
+if response.status_code == 200:
+    models = response.json().get("data", [])
+    print(f"Supported models on OpenRouter ({len(models)}):")
+    for m in models:
+        if "gpt-oss" in m.get("id", "").lower() or "free" in m.get("id", "").lower():
+            print(f"- {m.get('id')}")
+else:
+    print(f"Failed to fetch models: {response.text}")
