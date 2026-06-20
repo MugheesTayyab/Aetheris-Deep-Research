@@ -9,7 +9,7 @@ Demonstrates:
 """
 
 from dotenv import load_dotenv
-load_dotenv()  # Must happen before importing graph so API keys are available
+load_dotenv(override=True)  # Must happen before importing graph so API keys are available
 
 from langchain_core.messages import HumanMessage
 from langgraph.types import Command

@@ -2,7 +2,7 @@ import os
 import sys
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 from graph import app
 from langchain_core.messages import HumanMessage
 

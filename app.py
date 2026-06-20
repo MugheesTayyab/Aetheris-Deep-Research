@@ -5,7 +5,7 @@ import base64
 import streamlit as st
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 # Load logo for sidebar
 logo_base64 = ""
