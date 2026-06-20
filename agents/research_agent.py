@@ -3,21 +3,22 @@ import json
 import time
 
 from dotenv import load_dotenv
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_openai import ChatOpenAI
 from langchain_community.tools import TavilySearchResults
 from langchain_core.messages import HumanMessage, AIMessage
 
 # Load environment variables from the project-root .env file
 load_dotenv(override=True)
 
-# Pull the Google API key for Gemini authentication
-api_key = os.getenv("GOOGLE_API_KEY")
+# Pull the OpenRouter API key
+api_key = os.getenv("OPENROUTER_API_KEY")
 
-# Gemini 3.5 Flash balances speed and quality for multi-step research tasks
-model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
-llm = ChatGoogleGenerativeAI(
+# OpenRouter Model
+model_name = os.getenv("OPENROUTER_MODEL", "openai/gpt-oss-120b:free")
+llm = ChatOpenAI(
     model=model_name,
-    google_api_key=api_key,
+    api_key=api_key,
+    base_url="https://openrouter.ai/api/v1",
     max_retries=2,       # Built-in LangChain retry for transient failures
     temperature=0.7,
 )
