@@ -8,9 +8,6 @@ langchain-community
 # Search capabilities
 tavily-python
 
-# Web framework for local Streamlit UI
-streamlit
-
 # Backend API server for Vercel deployment
 fastapi
 uvicorn
