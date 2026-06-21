@@ -49,3 +49,7 @@ secrets.toml
 research_assistant_code.zip
 *.tmp
 *.log
+aetheris_checkpoints.db
+aetheris_checkpoints.db-shm
+aetheris_checkpoints.db-wal
+scratch/

@@ -199,7 +199,8 @@ async def chat_endpoint(request: ChatRequest):
                     "validation_result": validation_result,
                     "attempts": attempts,
                     "completion": completion,
-                    "agents": agents
+                    "agents": agents,
+                    "research_findings": state_values.get("research_findings", "")
                 }
                 yield f"data: {json.dumps(final_data)}\n\n"
             except Exception as inner_e:

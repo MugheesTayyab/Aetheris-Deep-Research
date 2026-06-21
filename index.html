@@ -32,23 +32,23 @@
       <div class="sidebar-divider"></div>
 
       <nav class="sidebar-nav">
-        <a href="#" class="nav-item active">
+        <a href="#" id="nav-research" class="nav-item active">
           <svg class="icon nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           Research Hub
         </a>
-        <a href="#" class="nav-item">
+        <a href="#" id="nav-synthesis" class="nav-item">
           <svg class="icon nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
           Data Synthesis
         </a>
-        <a href="#" class="nav-item">
+        <a href="#" id="nav-pipeline" class="nav-item">
           <svg class="icon nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"></circle><circle cx="5" cy="19" r="2"></circle><circle cx="19" cy="19" r="2"></circle><line x1="12" y1="7" x2="5.5" y2="17"></line><line x1="12" y1="7" x2="18.5" y2="17"></line></svg>
           Agent Pipeline
         </a>
-        <a href="#" class="nav-item">
+        <a href="#" id="nav-knowledge" class="nav-item">
           <svg class="icon nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
           Knowledge Base
         </a>
-        <a href="#" class="nav-item">
+        <a href="#" id="nav-archive" class="nav-item">
           <svg class="icon nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg>
           Archive
         </a>
@@ -188,6 +188,223 @@
         Halt Synthesis
       </button>
     </section>
+
+    <!-- DATA SYNTHESIS VIEW -->
+    <main id="synthesis-view" class="view-panel hidden">
+      <header class="view-header">
+        <div>
+          <span class="view-label">Metrics & Export</span>
+          <h2 class="view-title">Data Synthesis Dashboard</h2>
+        </div>
+        <div id="synthesis-actions" class="hidden">
+          <button id="export-md-btn" class="btn btn-secondary">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Export Markdown
+          </button>
+          <button id="export-json-btn" class="btn btn-secondary">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+            Export JSON
+          </button>
+          <button id="print-report-btn" class="btn btn-primary">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Print PDF
+          </button>
+        </div>
+      </header>
+      
+      <div id="synthesis-empty" class="empty-state">
+        <div class="empty-state-icon">📊</div>
+        <h3 class="empty-state-title">No Synthesized Data</h3>
+        <p class="empty-state-subtitle">Initiate a deep research cycle in the Research Hub. The synthesis reports and structured metrics will populate here once completed.</p>
+      </div>
+
+      <div id="synthesis-content" class="dashboard-grid hidden">
+        <div class="dashboard-card col-span-2">
+          <h3 class="card-title">Structured Data & Tables</h3>
+          <div id="extracted-tables-container" class="report-body">
+            <!-- Dynamically extracted tables go here -->
+          </div>
+        </div>
+        <div class="dashboard-card">
+          <h3 class="card-title">Session Summary</h3>
+          <div class="summary-metric">
+            <span class="summary-label">Query</span>
+            <span id="synth-query" class="summary-val">-</span>
+          </div>
+          <div class="summary-metric">
+            <span class="summary-label">Confidence Rating</span>
+            <span id="synth-confidence" class="summary-val">-</span>
+          </div>
+          <div class="summary-metric">
+            <span class="summary-label">Attempts Taken</span>
+            <span id="synth-attempts" class="summary-val">-</span>
+          </div>
+          <div class="summary-metric">
+            <span class="summary-label">Performance Chart</span>
+            <div class="completion-chart-wrapper" style="margin-top:14px;">
+              <canvas id="synthesis-chart" style="width: 100%; height: 160px;"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- AGENT PIPELINE VIEW -->
+    <main id="pipeline-view" class="view-panel hidden">
+      <header class="view-header">
+        <div>
+          <span class="view-label">Orchestration Graph</span>
+          <h2 class="view-title">Multi-Agent LangGraph Pipeline</h2>
+        </div>
+      </header>
+      <div class="pipeline-container">
+        <div class="pipeline-graph-card">
+          <h3 class="card-title">Interactive LangGraph Architecture</h3>
+          <p class="card-subtitle">Click on any node to view its engine specifications, prompts, and memory scope.</p>
+          <div class="graph-viewport">
+            <svg class="pipeline-svg" viewBox="0 0 800 240">
+              <!-- Definitions for arrow markers -->
+              <defs>
+                <marker id="arrow" viewBox="0 0 10 10" refX="22" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--sage-medium)"/>
+                </marker>
+              </defs>
+              <!-- Connecting lines -->
+              <path class="flow-path" d="M 60 120 L 140 120" marker-end="url(#arrow)"/>
+              <path class="flow-path" d="M 220 120 L 300 120" marker-end="url(#arrow)"/>
+              <path class="flow-path flow-loop" d="M 380 120 L 460 120" marker-edge="url(#arrow)" id="loop-edge-1"/>
+              <path class="flow-path flow-loop" d="M 540 120 L 620 120" marker-edge="url(#arrow)" id="loop-edge-2"/>
+              <path class="flow-path" d="M 700 120 L 750 120" marker-end="url(#arrow)"/>
+              
+              <!-- Retries/Clarification edges -->
+              <!-- Validator loop back to Scraper -->
+              <path class="flow-path flow-loop-back" d="M 500 100 Q 380 40 340 100" marker-end="url(#arrow)"/>
+              <!-- Clarity Loop back to User (Clarity -> User interrupt) -->
+              <path class="flow-path flow-loop-back" d="M 180 140 Q 120 190 60 140" marker-end="url(#arrow)"/>
+
+              <!-- Graph Nodes -->
+              <g class="graph-node-group" id="node-start" onclick="selectPipelineNode('start')">
+                <circle cx="50" cy="120" r="16" class="node-circle node-special"/>
+                <text x="50" y="124" class="node-text text-special">START</text>
+              </g>
+              <g class="graph-node-group node-active-hover" id="node-clarity" onclick="selectPipelineNode('clarity')">
+                <rect x="140" y="90" width="80" height="60" rx="10" class="node-rect"/>
+                <text x="180" y="125" class="node-title">Query</text>
+                <text x="180" y="137" class="node-subtitle">Analyzer</text>
+              </g>
+              <g class="graph-node-group node-active-hover" id="node-research" onclick="selectPipelineNode('research')">
+                <rect x="300" y="90" width="80" height="60" rx="10" class="node-rect"/>
+                <text x="340" y="125" class="node-title">Literature</text>
+                <text x="340" y="137" class="node-subtitle">Scraper</text>
+              </g>
+              <g class="graph-node-group node-active-hover" id="node-validator" onclick="selectPipelineNode('validator')">
+                <rect x="460" y="90" width="80" height="60" rx="10" class="node-rect"/>
+                <text x="500" y="125" class="node-title">Fact-Check</text>
+                <text x="500" y="137" class="node-subtitle">Validator</text>
+              </g>
+              <g class="graph-node-group node-active-hover" id="node-synthesis" onclick="selectPipelineNode('synthesis')">
+                <rect x="620" y="90" width="80" height="60" rx="10" class="node-rect"/>
+                <text x="660" y="125" class="node-title">Drafting</text>
+                <text x="660" y="137" class="node-subtitle">Engine</text>
+              </g>
+              <g class="graph-node-group" id="node-end" onclick="selectPipelineNode('end')">
+                <circle cx="760" cy="120" r="16" class="node-circle node-special"/>
+                <text x="760" y="124" class="node-text text-special">END</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+        <div class="pipeline-details-card">
+          <h3 class="card-title">Node Inspector</h3>
+          <div id="node-inspector-empty">
+            <p class="empty-state-subtitle" style="margin-top:40px;text-align:center;">Select a node in the interactive trace to inspect its operational criteria and parameters.</p>
+          </div>
+          <div id="node-inspector-content" class="hidden">
+            <h4 id="inspector-node-name" class="inspector-title">-</h4>
+            <div class="inspector-badge" id="inspector-node-type">-</div>
+            
+            <div class="inspector-section">
+              <span class="inspector-label">LLM Engine Configuration</span>
+              <p class="inspector-value" id="inspector-node-engine">-</p>
+            </div>
+            
+            <div class="inspector-section">
+              <span class="inspector-label">Tool Access List</span>
+              <p class="inspector-value" id="inspector-node-tools">-</p>
+            </div>
+
+            <div class="inspector-section">
+              <span class="inspector-label">State Scope</span>
+              <p class="inspector-value" id="inspector-node-state">-</p>
+            </div>
+
+            <div class="inspector-section">
+              <span class="inspector-label">Core Instructions & Prompt Directive</span>
+              <div class="inspector-prompt" id="inspector-node-prompt">-</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- KNOWLEDGE BASE VIEW -->
+    <main id="knowledge-view" class="view-panel hidden">
+      <header class="view-header">
+        <div>
+          <span class="view-label">Scraped Sources</span>
+          <h2 class="view-title">Research Source Registry</h2>
+        </div>
+        <div>
+          <input type="text" id="knowledge-search" class="search-input" placeholder="Search knowledge base by domain or keyword...">
+        </div>
+      </header>
+
+      <div id="knowledge-empty" class="empty-state">
+        <div class="empty-state-icon">📖</div>
+        <h3 class="empty-state-title">Empty Knowledge Base</h3>
+        <p class="empty-state-subtitle">No scraped files or literature streams registered. Initiate a research query to compile external resources.</p>
+      </div>
+
+      <div id="knowledge-content" class="hidden">
+        <div class="dashboard-card">
+          <div class="table-scroll-container">
+            <table class="sources-table">
+              <thead>
+                <tr>
+                  <th style="width: 80px;">Index</th>
+                  <th style="width: 200px;">Source Domain</th>
+                  <th>Snippet Preview</th>
+                  <th style="width: 120px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="sources-table-body">
+                <!-- Sources go here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ARCHIVE VIEW -->
+    <main id="archive-view" class="view-panel hidden">
+      <header class="view-header">
+        <div>
+          <span class="view-label">Session Memory</span>
+          <h2 class="view-title">Synthesis History & Archive</h2>
+        </div>
+      </header>
+
+      <div id="archive-empty" class="empty-state">
+        <div class="empty-state-icon">📁</div>
+        <h3 class="empty-state-title">No Archived Sessions</h3>
+        <p class="empty-state-subtitle">Your local research database is empty. Completed runs will be automatically cached here.</p>
+      </div>
+
+      <div id="archive-content" class="archive-grid hidden">
+        <!-- Archive cards go here -->
+      </div>
+    </main>
   </div>
 
   <!-- Loading Overlay -->

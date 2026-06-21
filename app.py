@@ -586,8 +586,8 @@ section[data-testid="stSidebar"] .stButton > button:active {
 
 /* Right-panel button (Halt) */
 [data-testid="column"]:last-child .stButton > button {
-    background: transparent !important; /* Removes black color */
-    color: #ffffff !important;          /* White text */
+    background: transparent !important;
+    color: #ffffff !important;
     border: 1px solid rgba(255, 255, 255, 0.3) !important;
     border-radius: 10px !important;
     font-size: 13px !important;
@@ -597,12 +597,6 @@ section[data-testid="stSidebar"] .stButton > button:active {
     transition: all .15s ease !important;
 }
 
-[data-testid="column"]:last-child .stButton > button:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
-    color: #ffffff !important;
-    border-color: rgba(255, 255, 255, 0.6) !important;
-    transform: translateY(-1px);
-}
 [data-testid="column"]:last-child .stButton > button:hover {
     background: #fde8d4 !important;
     color: #8a4000 !important;
