@@ -255,7 +255,13 @@ async function handleSubmit() {
 
     if (STATE.isClarifying) {
       payload.clarification_answer = query;
+      // Extract the first user message as the original query
+      const originalUserMsg = STATE.displayHistory.find(m => m.role === "user");
+      if (originalUserMsg) {
+        payload.original_query = originalUserMsg.content;
+      }
     }
+
 
     let response;
     try {

@@ -68,6 +68,7 @@ class ChatRequest(BaseModel):
     query: str
     thread_id: Optional[str] = None
     clarification_answer: Optional[str] = None
+    original_query: Optional[str] = None
 
 class AgentStatus(BaseModel):
     name: str
@@ -138,22 +139,22 @@ async def chat_endpoint(request: ChatRequest):
     config = {"configurable": {"thread_id": thread_id}}
 
     try:
-        # Check current snapshot of the graph
-        snapshot = research_graph.get_state(config)
-        is_currently_clarifying = snapshot.next and "human_feedback" in snapshot.next
-
-        # Decide whether we are resuming or running a fresh/new query
-        if is_currently_clarifying and request.clarification_answer:
-            # Resume graph with user answer
-            event_stream = research_graph.stream(Command(resume=request.clarification_answer), config=config, stream_mode="updates")
+        # Decide whether we are resuming via stateless query combination or running a fresh query
+        if request.clarification_answer and request.original_query:
+            combined = f"Original query: {request.original_query}\nClarification: {request.clarification_answer}"
+            initial_input = {
+                "query": combined,
+                "messages": [HumanMessage(content=combined)],
+                "attempts": 0,
+            }
+            event_stream = research_graph.astream(initial_input, config=config, stream_mode="updates")
         else:
-            # Start fresh query
             initial_input = {
                 "query": request.query,
                 "messages": [HumanMessage(content=request.query)],
                 "attempts": 0,
             }
-            event_stream = research_graph.stream(initial_input, config=config, stream_mode="updates")
+            event_stream = research_graph.astream(initial_input, config=config, stream_mode="updates")
 
         import asyncio
         import json
@@ -161,16 +162,16 @@ async def chat_endpoint(request: ChatRequest):
 
         async def event_generator():
             try:
-                # Iterate through the stream from LangGraph
-                for update in event_stream:
+                # Iterate through the stream asynchronously from LangGraph
+                async for update in event_stream:
                     # Extract the node name
                     node_name = list(update.keys())[0]
                     # Yield an event telling the UI which node is running
                     yield f"data: {json.dumps({'event': 'update', 'node': node_name})}\n\n"
                     await asyncio.sleep(0.05)
 
-                # Retrieve updated state
-                updated_snapshot = research_graph.get_state(config)
+                # Retrieve updated state asynchronously
+                updated_snapshot = await research_graph.aget_state(config)
                 state_values = updated_snapshot.values or {}
 
                 # Check if graph paused for clarification

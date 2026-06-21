@@ -1,8 +1,7 @@
 from __future__ import annotations
 import os
-import sqlite3
 
-from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import interrupt, Command
 
@@ -128,15 +127,7 @@ graph.add_edge("synthesis_agent", END)
 
 # ---------------------------------------------------------------------------
 # Compile
-# SqliteSaver persists checkpoints to disk, keyed by thread_id.
-# On Vercel /tmp is the only writable directory; locally we use the project root.
-# Pass {"configurable": {"thread_id": "<id>"}} to every invoke() call so
-# the same thread accumulates history across multiple turns.
+# MemorySaver persists checkpoints in memory during the execution lifecycle.
+# This removes reliance on disk-based databases (like SQLite) which are volatile/read-only on Vercel.
 # ---------------------------------------------------------------------------
-_DB_PATH = os.path.join(
-    "/tmp" if os.environ.get("VERCEL") else os.path.dirname(os.path.abspath(__file__)),
-    "aetheris_checkpoints.db",
-)
-# SqliteSaver.from_conn_string() is a context manager — pass an open connection instead
-_conn = sqlite3.connect(_DB_PATH, check_same_thread=False)
-app = graph.compile(checkpointer=SqliteSaver(_conn))
+app = graph.compile(checkpointer=MemorySaver())
