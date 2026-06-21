@@ -1,6 +1,6 @@
 # Aetheris · Deep Research AI Assistant
 
-A production-grade, state-persisted multi-agent research assistant designed to turn unstructured user research requests into publication-ready, factual, and highly formatted business intelligence reports. Powered by **LangGraph**, **OpenRouter LLMs**, **Tavily API**, and **Streamlit**.
+A production-grade, state-persisted multi-agent research assistant designed to turn unstructured user research requests into publication-ready, factual, and highly formatted business intelligence reports. Powered by **LangGraph**, **Unify AI LLMs**, **Tavily API**, and **Streamlit**.
 
 ---
 
@@ -115,9 +115,10 @@ cd Mughees-Aetheris-deep.research
 ### 2. Configure Environment Variables
 Create a `.env` file inside the root folder:
 ```env
-OPENROUTER_API_KEY=your_openrouter_api_key_here
+OPENROUTER_API_KEY=your_unify_api_key_here
 TAVILY_API_KEY=your_tavily_api_key_here
-OPENROUTER_MODEL=openai/gpt-oss-120b:free
+OPENROUTER_MODEL=gateway-claude-opus-4-8
+OPENROUTER_BASE_URL=https://api.unify.ai/v0
 ```
 
 ### 3. Install Dependencies
@@ -141,6 +142,6 @@ python test.py
 ## 🔧 Core Tech Stack
 
 * **Frameworks:** Python, LangGraph (StateGraph, MemorySaver), Streamlit.
-* **Large Language Models:** OpenRouter API (`openai/gpt-oss-120b:free` model).
+* **Large Language Models:** Unify AI API (`gateway-claude-opus-4-8` model).
 * **Information Retrieval:** Tavily Search API (optimized specifically for agentic workflows).
 * **Styling:** CSS3 variables, HTML5 tags, and Custom-themed Streamlit layout.

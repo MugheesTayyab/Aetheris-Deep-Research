@@ -848,7 +848,7 @@ const NODE_SPECIFICATIONS = {
   "clarity": {
     name: "Query Analyzer (Clarity Agent)",
     type: "Autonomous LLM router",
-    engine: "ChatOpenAI (openai/gpt-oss-120b:free) | Temp: 0.7",
+    engine: "ChatOpenAI (gateway-claude-opus-4-8) | Temp: 0.7",
     tools: "None",
     state: "Reads: query. Writes: clarity_status, clarification_question.",
     prompt: "Evaluate if the user's research query contains a specific company/entity name and research goal.\nIf ambiguous or vague, output: {\"clarity_status\": \"needs_clarification\", \"clarification_question\": \"<question>\"}.\nIf clear, output: {\"clarity_status\": \"clear\"}."
@@ -856,7 +856,7 @@ const NODE_SPECIFICATIONS = {
   "research": {
     name: "Literature Scraper (Research Agent)",
     type: "Web search aggregator",
-    engine: "ChatOpenAI (openai/gpt-oss-120b:free) | Temp: 0.7",
+    engine: "ChatOpenAI (gateway-claude-opus-4-8) | Temp: 0.7",
     tools: "Tavily Search Engine API (Parallel invocation)",
     state: "Reads: query, attempts, validator feedback. Writes: research_findings, confidence_score, attempts.",
     prompt: "Generate exactly 3 search queries to find the most relevant information.\nScrape the web results, format source URLs and contents, then evaluate research completeness on a 0-10 scale.\nRespond in JSON format: {\"confidence_score\": <score>, \"reasoning\": \"<explanation>\"}."
@@ -864,7 +864,7 @@ const NODE_SPECIFICATIONS = {
   "validator": {
     name: "Fact-Check Validator (Validator Agent)",
     type: "Audit & validation agent",
-    engine: "ChatOpenAI (openai/gpt-oss-120b:free) | Temp: 0.7",
+    engine: "ChatOpenAI (gateway-claude-opus-4-8) | Temp: 0.7",
     tools: "None",
     state: "Reads: query, research_findings. Writes: validation_result.",
     prompt: "Assess whether the gathered search findings contain enough facts, dates, and numbers to fully satisfy the query.\nRespond in JSON format:\n{\"validation_result\": \"sufficient\" or \"insufficient\", \"reason\": \"<explanation>\"}."
@@ -872,7 +872,7 @@ const NODE_SPECIFICATIONS = {
   "synthesis": {
     name: "Drafting Engine (Synthesis Agent)",
     type: "Business report compiler",
-    engine: "ChatOpenAI (openai/gpt-oss-120b:free) | Temp: 0.7",
+    engine: "ChatOpenAI (gateway-claude-opus-4-8) | Temp: 0.7",
     tools: "None",
     state: "Reads: query, research_findings, conversation history. Writes: final_response.",
     prompt: "Synthesize the gathered evidence into a clear, formatted report:\n1. Short Executive Summary\n2. Clearly labeled sections with headers (##)\n3. Markdown table grids for tabular numbers and timeline dates\n4. Bullet points and key takeaways."
