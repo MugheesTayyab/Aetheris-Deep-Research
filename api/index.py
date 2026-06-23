@@ -212,7 +212,14 @@ async def chat_endpoint(request: ChatRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Pipeline error: {type(e).__name__}: {e}")
 
-# Serve static files from the project root directory for local execution
-from fastapi.staticfiles import StaticFiles
-root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-app.mount("/", StaticFiles(directory=root_dir, html=True), name="static")
+# Serve static files from the project root directory for local execution.
+# On Vercel, static files are served directly from the edge CDN, so we skip mounting
+# to prevent any directory/startup conflicts.
+if not os.getenv("VERCEL"):
+    try:
+        from fastapi.staticfiles import StaticFiles
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        if os.path.isdir(root_dir):
+            app.mount("/", StaticFiles(directory=root_dir, html=True), name="static")
+    except Exception as mount_err:
+        print(f"Non-critical: Failed to mount static files: {mount_err}")
