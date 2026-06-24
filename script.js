@@ -322,11 +322,11 @@ async function handleSubmit() {
               throw new Error(data.detail || "Unknown pipeline error");
             }
           } catch (e) {
-            if (e.message && e.message !== "Unknown pipeline error") {
+            if (e instanceof SyntaxError) {
               console.error("Failed to parse JSON line:", cleaned, e);
-            } else {
-              throw e;
+              continue;
             }
+            throw e;
           }
         }
       }
