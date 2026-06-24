@@ -2,9 +2,9 @@ import os
 import json
 import time
 
+import requests
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
-from langchain_community.tools import TavilySearchResults
 from langchain_core.messages import HumanMessage, AIMessage
 
 # Load environment variables from the project-root .env file
@@ -25,14 +25,11 @@ llm = ChatOpenAI(
     base_url=base_url,
     max_retries=2,       # Built-in LangChain retry for transient failures
     temperature=0.7,
+    timeout=8.0,
 )
 
-# Tavily is a search engine built specifically for LLM agents; it returns
-# structured {url, content} dicts instead of raw HTML, making parsing trivial
-search_tool = TavilySearchResults(
-    max_results=5,                               # Cap at 5 results per search
-    tavily_api_key=os.getenv("TAVILY_API_KEY"),
-)
+# Tavily search config (we query the API directly via HTTP post with a strict timeout)
+TAVILY_API_URL = "https://api.tavily.com/search"
 
 
 def _extract_text(content) -> str:
@@ -67,7 +64,17 @@ def _run_search(query: str) -> str:
         str: Numbered results joined by blank lines, or an error message string.
     """
     try:
-        results = search_tool.invoke(query)    # Returns a list of result dicts
+        api_key = os.getenv("TAVILY_API_KEY")
+        if not api_key:
+            return "Search failed: TAVILY_API_KEY is not set."
+        payload = {
+            "api_key": api_key,
+            "query": query,
+            "max_results": 5
+        }
+        res = requests.post(TAVILY_API_URL, json=payload, timeout=3.0)
+        res.raise_for_status()
+        results = res.json().get("results", [])
         formatted = []
         for i, result in enumerate(results, 1):
             url     = result.get("url", "N/A")
