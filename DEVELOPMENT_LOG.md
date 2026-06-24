@@ -5,3 +5,7 @@ This log documents the architecture, component design, and integration decisions
 ## 1. LangGraph State Machine
 
 The core of the research agent is built using LangGraph's `StateGraph`. The graph orchestrates control flow between four specialized agent nodes (`Clarity`, `Research`, `Validator`, `Synthesis`) and a `Human Feedback` node, with conditional edges routing state dynamically based on metrics.
+
+## 2. Clarity Agent Node
+
+The Clarity Agent evaluates whether the user's research query contains a specific target company and an explicit goal. If vague, it sets the state to `needs_clarification` and triggers a Human-in-the-Loop interrupt.
