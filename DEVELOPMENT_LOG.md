@@ -21,3 +21,7 @@ When search confidence is low (< 6), the Validator Agent reviews findings agains
 ## 5. Synthesis Agent Node
 
 The Synthesis Agent compiles the collected research findings and drafts the final markdown report. It structures findings with headings, bullet points, and source citations.
+
+## 6. Graph State Definition (`state.py`)
+
+The global graph state is defined as a `TypedDict` in `state.py`. It tracks the raw query, messages array, research findings, attempt counts, confidence scores, and clarity/validation statuses.
