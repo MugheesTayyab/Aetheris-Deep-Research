@@ -65,3 +65,7 @@ API rate limits are mitigated in agent nodes using exponential/static backoffs. 
 ## 16. Vercel Serverless Function Config (`vercel.json`)
 
 `vercel.json` maps `/api/(.*)` to the python entry point `api/index.py`. It specifies a `maxDuration` of 60 seconds and excludes unnecessary media folders from the build.
+
+## 17. Static Asset Serving on Vercel CDN
+
+FastAPI mounts the root directory for local static file serving only when NOT on Vercel. In production, Vercel serves the root static assets directly via its edge CDN.
