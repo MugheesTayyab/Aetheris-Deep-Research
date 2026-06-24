@@ -172,13 +172,17 @@ def research_agent(state: dict) -> dict:
                 feedback = content
                 break
 
+    from concurrent.futures import ThreadPoolExecutor
+
     search_queries = _generate_queries(query, feedback if attempts > 0 else None)
 
-    all_findings = []
-    for sq in search_queries:
-        result_text = _run_search(sq)
-        # Label each block so the LLM knows which query produced which results
-        all_findings.append(f"=== Search: {sq} ===\n{result_text}")
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        search_results = list(executor.map(_run_search, search_queries))
+
+    all_findings = [
+        f"=== Search: {sq} ===\n{res}"
+        for sq, res in zip(search_queries, search_results)
+    ]
 
     current_findings = "\n\n".join(all_findings)
 
