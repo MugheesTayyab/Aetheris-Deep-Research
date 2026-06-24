@@ -9,3 +9,7 @@ The core of the research agent is built using LangGraph's `StateGraph`. The grap
 ## 2. Clarity Agent Node
 
 The Clarity Agent evaluates whether the user's research query contains a specific target company and an explicit goal. If vague, it sets the state to `needs_clarification` and triggers a Human-in-the-Loop interrupt.
+
+## 3. Research Agent Node
+
+The Research Agent uses Tavily Search API. It generates three independent search queries, gathers the web results, consolidates findings, and computes a 0-10 confidence score regarding information completeness.
