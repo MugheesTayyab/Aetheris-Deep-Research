@@ -53,3 +53,7 @@ Fixed syntax parsing in `script.js` to handle malformed SSE lines robustly by ca
 ## 13. Tavily Search API Integration
 
 Tavily Search is configured via `TavilySearchResults` to return clean snippets and URLs. We cap results at 5 per query to remain within token context boundaries.
+
+## 14. OpenRouter LLM Gateway
+
+All agent nodes utilize `ChatOpenAI` pointed to the OpenRouter gateway. It defaults to `openai/gpt-oss-120b:free` but allows customized overrides via environment variables.
