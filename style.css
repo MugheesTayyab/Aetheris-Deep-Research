@@ -13,8 +13,8 @@
   --cream-bg: #FAF8F5;
   --cream-card: #FFFFFF;
   --cream-sidebar: #F0EDE6;
-  --cream-border: #E3DDD3;
-  --cream-border-soft: #EDEAE3;
+  --cream-border: #C8BFB0;
+  --cream-border-soft: #DBD4C8;
 
   /* Accent Gold & Sandy Tones */
   --accent-gold: #C09E73;
@@ -900,7 +900,7 @@ body {
   padding: 8px 10px;
   border-radius: var(--radius-sm);
   background-color: var(--cream-bg);
-  border: 1px solid rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--cream-border-soft);
   transition: all 0.15s ease;
 }
 
