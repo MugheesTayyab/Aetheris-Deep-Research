@@ -45,3 +45,7 @@ The API streams node updates to the frontend client using event-stream format (`
 ## 11. HTML/JS/CSS Frontend Client
 
 The frontend client lives in the root directory. It is built as a single-page application utilizing pure vanilla JS and CSS, styled with an earth/parchment theme and sleek glassmorphism panels.
+
+## 12. Robust JSON Line Stream Parsing
+
+Fixed syntax parsing in `script.js` to handle malformed SSE lines robustly by catching syntax errors during parsing and continuing rather than crashing the client UI.
