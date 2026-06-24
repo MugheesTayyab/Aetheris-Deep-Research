@@ -207,7 +207,12 @@ async def chat_endpoint(request: ChatRequest):
             except Exception as inner_e:
                 yield f"data: {json.dumps({'event': 'error', 'detail': str(inner_e)})}\n\n"
 
-        return StreamingResponse(event_generator(), media_type="text/event-stream")
+        headers = {
+            "X-Accel-Buffering": "no",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+        }
+        return StreamingResponse(event_generator(), media_type="text/event-stream", headers=headers)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Pipeline error: {type(e).__name__}: {e}")
