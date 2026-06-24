@@ -57,3 +57,7 @@ Tavily Search is configured via `TavilySearchResults` to return clean snippets a
 ## 14. OpenRouter LLM Gateway
 
 All agent nodes utilize `ChatOpenAI` pointed to the OpenRouter gateway. It defaults to `openai/gpt-oss-120b:free` but allows customized overrides via environment variables.
+
+## 15. Exponential Backoff and Error Resilience
+
+API rate limits are mitigated in agent nodes using exponential/static backoffs. If a 429 rate limit is encountered, the agent pauses before retrying the invocation.
