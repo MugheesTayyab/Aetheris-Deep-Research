@@ -13,3 +13,7 @@ The Clarity Agent evaluates whether the user's research query contains a specifi
 ## 3. Research Agent Node
 
 The Research Agent uses Tavily Search API. It generates three independent search queries, gathers the web results, consolidates findings, and computes a 0-10 confidence score regarding information completeness.
+
+## 4. Validator Agent Node
+
+When search confidence is low (< 6), the Validator Agent reviews findings against the user's goal. It either marks them as `sufficient` or flags missing details as `insufficient`, looping back to research up to 3 times.
