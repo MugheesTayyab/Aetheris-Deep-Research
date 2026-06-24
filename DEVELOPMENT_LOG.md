@@ -25,3 +25,7 @@ The Synthesis Agent compiles the collected research findings and drafts the fina
 ## 6. Graph State Definition (`state.py`)
 
 The global graph state is defined as a `TypedDict` in `state.py`. It tracks the raw query, messages array, research findings, attempt counts, confidence scores, and clarity/validation statuses.
+
+## 7. Human-in-the-Loop (HITL) Interrupts
+
+We leverage LangGraph's `interrupt()` in `graph.py` to halt the state graph mid-execution when a query is unclear, persisting state parameters to the checkpoint database and waiting for user input.
