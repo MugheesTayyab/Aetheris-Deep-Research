@@ -37,3 +37,7 @@ Migrated from SQLite checkpointer to LangGraph's in-memory `MemorySaver`. This p
 ## 9. FastAPI API Server (`api/index.py`)
 
 Serves `/api/health` and `/api/chat`. The chat endpoint uses LangGraph's `astream()` to yield progress updates in real-time, ending with a JSON object containing the final results.
+
+## 10. Server-Sent Events (SSE) Streaming
+
+The API streams node updates to the frontend client using event-stream format (`text/event-stream`). This lets the UI highlight which agent is currently running.
