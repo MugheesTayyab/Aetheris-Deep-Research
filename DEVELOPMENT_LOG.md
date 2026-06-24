@@ -49,3 +49,7 @@ The frontend client lives in the root directory. It is built as a single-page ap
 ## 12. Robust JSON Line Stream Parsing
 
 Fixed syntax parsing in `script.js` to handle malformed SSE lines robustly by catching syntax errors during parsing and continuing rather than crashing the client UI.
+
+## 13. Tavily Search API Integration
+
+Tavily Search is configured via `TavilySearchResults` to return clean snippets and URLs. We cap results at 5 per query to remain within token context boundaries.
