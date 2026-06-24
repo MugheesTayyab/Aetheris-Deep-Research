@@ -3,6 +3,7 @@ langgraph
 langgraph-checkpoint-sqlite
 langchain-google-genai
 langchain-openai
+langchain-anthropic
 langchain-community
 
 # Search capabilities
