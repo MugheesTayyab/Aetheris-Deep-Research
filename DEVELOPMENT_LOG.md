@@ -61,3 +61,7 @@ All agent nodes utilize `ChatOpenAI` pointed to the OpenRouter gateway. It defau
 ## 15. Exponential Backoff and Error Resilience
 
 API rate limits are mitigated in agent nodes using exponential/static backoffs. If a 429 rate limit is encountered, the agent pauses before retrying the invocation.
+
+## 16. Vercel Serverless Function Config (`vercel.json`)
+
+`vercel.json` maps `/api/(.*)` to the python entry point `api/index.py`. It specifies a `maxDuration` of 60 seconds and excludes unnecessary media folders from the build.
