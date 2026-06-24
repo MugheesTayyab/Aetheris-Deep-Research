@@ -73,3 +73,7 @@ FastAPI mounts the root directory for local static file serving only when NOT on
 ## 18. Multi-Turn Session Memory
 
 The graph state checkpointer associates conversational history with a unique `thread_id` UUID, enabling users to carry out multi-turn follow-up research.
+
+## 19. Local Running Instructions
+
+Local development requires running `uvicorn api.index:app --host 127.0.0.1 --port 8000` with variables configured in `.env`. The UI can be opened at `http://127.0.0.1:8000`.
