@@ -69,3 +69,7 @@ API rate limits are mitigated in agent nodes using exponential/static backoffs. 
 ## 17. Static Asset Serving on Vercel CDN
 
 FastAPI mounts the root directory for local static file serving only when NOT on Vercel. In production, Vercel serves the root static assets directly via its edge CDN.
+
+## 18. Multi-Turn Session Memory
+
+The graph state checkpointer associates conversational history with a unique `thread_id` UUID, enabling users to carry out multi-turn follow-up research.
