@@ -17,3 +17,7 @@ The Research Agent uses Tavily Search API. It generates three independent search
 ## 4. Validator Agent Node
 
 When search confidence is low (< 6), the Validator Agent reviews findings against the user's goal. It either marks them as `sufficient` or flags missing details as `insufficient`, looping back to research up to 3 times.
+
+## 5. Synthesis Agent Node
+
+The Synthesis Agent compiles the collected research findings and drafts the final markdown report. It structures findings with headings, bullet points, and source citations.
