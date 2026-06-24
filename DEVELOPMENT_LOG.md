@@ -29,3 +29,7 @@ The global graph state is defined as a `TypedDict` in `state.py`. It tracks the 
 ## 7. Human-in-the-Loop (HITL) Interrupts
 
 We leverage LangGraph's `interrupt()` in `graph.py` to halt the state graph mid-execution when a query is unclear, persisting state parameters to the checkpoint database and waiting for user input.
+
+## 8. MemorySaver Migration
+
+Migrated from SQLite checkpointer to LangGraph's in-memory `MemorySaver`. This prevents write failures in serverless environments like Vercel where the filesystem is read-only.
