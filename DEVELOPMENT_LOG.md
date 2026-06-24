@@ -33,3 +33,7 @@ We leverage LangGraph's `interrupt()` in `graph.py` to halt the state graph mid-
 ## 8. MemorySaver Migration
 
 Migrated from SQLite checkpointer to LangGraph's in-memory `MemorySaver`. This prevents write failures in serverless environments like Vercel where the filesystem is read-only.
+
+## 9. FastAPI API Server (`api/index.py`)
+
+Serves `/api/health` and `/api/chat`. The chat endpoint uses LangGraph's `astream()` to yield progress updates in real-time, ending with a JSON object containing the final results.
