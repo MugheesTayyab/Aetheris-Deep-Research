@@ -77,3 +77,7 @@ The graph state checkpointer associates conversational history with a unique `th
 ## 19. Local Running Instructions
 
 Local development requires running `uvicorn api.index:app --host 127.0.0.1 --port 8000` with variables configured in `.env`. The UI can be opened at `http://127.0.0.1:8000`.
+
+## 20. Future Scaling and Optimizations
+
+Future scalability improvements include implementing Redis/PostgreSQL checkpoints for persistent multi-node scaling and caching web results to reduce API overhead.
