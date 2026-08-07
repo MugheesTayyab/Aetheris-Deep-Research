@@ -8,23 +8,7 @@ from langchain_core.messages import HumanMessage, AIMessage
 # Load environment variables from the project-root .env file
 load_dotenv(override=True)
 
-# Pull the OpenRouter API key
-api_key = os.getenv("OPENROUTER_API_KEY")
-
-# OpenRouter Model
-model_name = os.getenv("OPENROUTER_MODEL", "openai/gpt-oss-120b:free")
-
-# OpenRouter Base URL (overrideable for custom gateways like Unify AI)
-base_url = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
-
-llm = ChatOpenAI(
-    model=model_name,
-    api_key=api_key,
-    base_url=base_url,
-    max_retries=2,
-    temperature=0.7,
-    timeout=8.0,
-)
+from agents.llm import llm
 
 
 def _extract_text(content) -> str:
